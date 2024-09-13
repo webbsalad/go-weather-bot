@@ -1,4 +1,4 @@
-module github.com/webbsalad/go-weather-bot
+module github.com/webbsalad/weather-bot
 
 go 1.22.2
 

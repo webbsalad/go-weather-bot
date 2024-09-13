@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/webbsalad/weather-bot/weather"
-
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/webbsalad/go-weather-bot/weather"
 )
 
 type Bot struct {
@@ -40,7 +39,6 @@ func (b *Bot) Start() {
 }
 
 func (b *Bot) handleCommand(message *tgbot.Message) {
-
 	switch message.Command() {
 	case "start":
 		buttons := tgbot.NewReplyKeyboard(
@@ -61,20 +59,29 @@ func (b *Bot) handleCommand(message *tgbot.Message) {
 
 func (b *Bot) handleText(message *tgbot.Message) {
 	city := message.Text
-	weatherData, err := weather.Get(city)
+	log.Printf("Получено обращение: %s", city)
+
+	weatherData, requestUrl, err := weather.Get(city)
+	log.Printf("Запрос к OpenWeatherMap: %s", requestUrl)
+
 	if err != nil {
 		msg := tgbot.NewMessage(message.Chat.ID, "Извините, не удалось получить погоду.")
 		b.api.Send(msg)
+		log.Printf("Ошибка при получении данных о погоде: %v", err)
 		return
 	}
 
 	if len(weatherData.Weather) == 0 {
 		msg := tgbot.NewMessage(message.Chat.ID, "Извините, нет информации о погоде.")
 		b.api.Send(msg)
+		log.Println("Ответ от OpenWeatherMap: нет информации о погоде.")
 		return
 	}
 
 	response := fmt.Sprintf("%s:\nТемпература: %.2f°C\nОписание: %s", city, weatherData.Main.Temp-273.15, weatherData.Weather[0].Description)
 	msg := tgbot.NewMessage(message.Chat.ID, response)
 	b.api.Send(msg)
+
+	log.Printf("Ответ от OpenWeatherMap: Температура: %.2f°C, Описание: %s", weatherData.Main.Temp-273.15, weatherData.Weather[0].Description)
+	log.Printf("Отправлено сообщение в Telegram: %s", response)
 }

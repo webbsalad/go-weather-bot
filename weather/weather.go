@@ -16,7 +16,7 @@ type WeatherResponse struct {
 	} `json:"main"`
 }
 
-func Get(city string) (*WeatherResponse, error) {
+func Get(city string) (*WeatherResponse, string, error) {
 	var cityName string
 	switch city {
 	case "Москва":
@@ -33,14 +33,14 @@ func Get(city string) (*WeatherResponse, error) {
 	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", cityName, apiKey)
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, url, err
 	}
 	defer resp.Body.Close()
 
 	var weather WeatherResponse
 	if err := json.NewDecoder(resp.Body).Decode(&weather); err != nil {
-		return nil, err
+		return nil, url, err
 	}
 
-	return &weather, nil
+	return &weather, url, nil
 }
